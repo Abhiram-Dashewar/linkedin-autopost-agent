@@ -22,7 +22,7 @@ An n8n workflow that turns a short **"What I learned today?"** note into a ready
 6. If you approve, the post and image go to LinkedIn and the details are logged in Google Sheets.
 
 
-## Workflow diagram
+## Workflow structure
 
 ```
 Form Trigger
@@ -60,7 +60,7 @@ Post to LinkedIn
 Save to Google Sheet
 ```
 
-## Workflow structure
+## Workflow diagram
 
 ![Alt Text](/Workflow.png)
 
