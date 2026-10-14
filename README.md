@@ -4,7 +4,7 @@ An n8n workflow that turns a short **"What I learned today?"** note into a ready
 
 ## Workflow diagram
 
-![Banner Image](/Your%20paragraph%20text.png)
+![Banner Image](/PostImage.png)
 
 **Workflow name:** `FinalWorkflow.json`
 **Trigger:** n8n Form (manual, whenever you want to post)
