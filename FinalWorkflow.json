@@ -1,0 +1,702 @@
+{
+  "name": "MyFinalAutomation_DUPLICATE",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ccd5967d-ae1a-412c-9435-7ba0b63a01ea",
+        "formTitle": "What did you learn today?",
+        "formDescription": "Write what you learned. The post and image will be made from this only.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Topic",
+              "placeholder": "e.g. How Nmap finds open ports",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What I learned",
+              "fieldType": "textarea",
+              "placeholder": "Write 3-6 lines in your own words: what it is, what you tried, what surprised you",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Who is this for?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Students and beginners"
+                  },
+                  {
+                    "option": "Aspiring cybersecurity learners"
+                  },
+                  {
+                    "option": "Recruiters and professionals"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fa1fb54f-7fdd-4b62-b55c-f75baf3e208f",
+      "name": "Form Trigger1",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ccd5967d-ae1a-412c-9435-7ba0b63a01ea"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nif (item.binary && item.binary.data) {\n  return [{ json: { imageReady: true }, binary: { data: item.binary.data } }];\n}\nconst res = item.json || {};\nconst b64 = (res.result && res.result.image) || res.image;\nif (!b64) {\n  throw new Error('Cloudflare returned no image. Response: ' + JSON.stringify(res).slice(0, 500));\n}\nconst bin = await this.helpers.prepareBinaryData(Buffer.from(b64, 'base64'), 'post-image.jpg', 'image/jpeg');\nreturn [{ json: { imageReady: true }, binary: { data: bin } }];"
+      },
+      "id": "80ddf1f7-cc8e-4ec7-8f78-f97168651ad5",
+      "name": "To Binary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "YOUR_APPROVAL_EMAIL",
+        "subject": "=Approve today's LinkedIn post: {{ $('Duplicate Check').first().json.topic }}",
+        "message": "=Approve today's LinkedIn post?\n\n{{ $('Post Writer Agent').first().json.output }}\n\n(The image is in the previous email, \"Image preview\".)\n\nTap Post it to publish, or Skip to cancel.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Post it",
+            "disapproveLabel": "Skip"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 12
+            }
+          }
+        }
+      },
+      "id": "815e170f-f623-4af5-ba38-c0c6469f59a8",
+      "name": "Email Approval1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2176,
+        0
+      ],
+      "webhookId": "ce82812e-a1d0-4dea-be18-c19d13bf3b8e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OlPaUFrT6GzsQOlv",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "i1",
+              "leftValue": "={{ $json.data?.approved === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "566c2dd2-c27d-4a67-8e74-de408b1d6c27",
+      "name": "Approved?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2352,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "sheetId",
+              "value": "YOUR_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "c2",
+              "name": "niche",
+              "value": "YOUR_NICHE",
+              "type": "string"
+            },
+            {
+              "id": "c3",
+              "name": "myProfile",
+              "type": "string",
+              "value": "YOUR_PROFILE"
+            },
+            {
+              "id": "c4",
+              "name": "myGoals",
+              "type": "string",
+              "value": "YOUR_GOALS"
+            },
+            {
+              "id": "c5",
+              "name": "imageStyle",
+              "type": "string",
+              "value": "IMAGE_STYLE_HERE"
+            },
+            {
+              "id": "c7",
+              "name": "cloudflareAccountId",
+              "type": "string",
+              "value": "YOUR_CLOUDFLARE_ACCOUNT_ID"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3dbb7531-6980-4fd7-a7e7-70cbbbbc479e",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const f = $('Form Trigger1').first().json;\nconst topic = String(f['Topic'] || '').trim();\nconst learned = String(f['What I learned'] || '').trim();\nif (!topic || !learned) throw new Error('Please fill Topic and What I learned in the form');\nreturn [{\n  json: {\n    topic,\n    audience: f['Who is this for?'] || 'Students and beginners',\n    angle: learned\n  }\n}];"
+      },
+      "id": "d963a488-244f-4cc9-a4bd-71b2a283e792",
+      "name": "Duplicate Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic: {{ $json.topic }}\nTarget audience: {{ $json.audience }}\n\nWhat I actually learned (my own notes, use these as the facts):\n{{ $json.angle }}\n\nWrite the LinkedIn post.",
+        "options": {
+          "systemMessage": "=You are ghostwriting a LinkedIn post that must sound exactly like this person, written in first person (\"I\").\n\nABOUT THEM (from their own ChatGPT memory; treat as the source of truth):\n{{ $('Config').first().json.myProfile }}\n\nTHEIR GOALS AND INTERESTS:\n{{ $('Config').first().json.myGoals }}\n\nVoice: write like I'm texting a smart friend about something I just realised or learned. Simple everyday words, short sentences, contractions (I'm, don't, it's). Casual, honest, a little curious. Copy my tone and opinions from the profile; if it describes my writing style, follow that first.\n\nSound human, not like AI or a corporate page:\n- Never use phrases like: delve, unlock, game-changer, leverage, in today's fast-paced world, let's dive in, here's the thing, it's not just X, it's Y.\n- No em dashes, no hype, no buzzword lists, no motivational-poster lines.\n- Don't force a rigid template. Start with a natural opening line (something I'd actually say), keep a conversational flow, and let paragraph lengths vary.\n- End with one genuine question, like I'm really asking my friends what they think.\n- 90-160 words. Exactly 3 relevant hashtags at the very end. Plain text only: no markdown, no bold, no emojis unless my profile says I use them.\n\nTruthfulness rules:\n- Only mention experiences, projects, skills and results that appear in the profile above or in my notes under \"What I actually learned\". Never invent personal stories, achievements, numbers, clients or news.\n- Explain only what my notes say, at a beginner level. Do not add extra technical claims, tools or steps that are not in my notes. Write it as something I learned, not as expert advice.\n- If no real experience fits, share it as something I'm learning, an honest opinion, or a question from my current stage.\n- Never reveal private details (health, family, finances, exact location, contact info) even if they appear in the profile.\n\nReturn only the post text."
+        }
+      },
+      "id": "2e44ffed-1c71-453c-92a9-4556119fdaa9",
+      "name": "Post Writer Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        720,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "efe0582d-ae38-43b8-9280-e5ffee2df97a",
+      "name": "Gemini - Writer",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        720,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "==Topic: {{ $('Duplicate Check').first().json.topic }}\n\nPost:\n{{ $json.output }}\n\nFraming for today: {{ ['top-down flat lay of the desk','close-up at desk level with a blurred background','over-the-shoulder angle showing only hands','wide corner shot of the whole workspace'][Math.floor(Math.random()*4)] }}\n\nWrite the image prompt.",
+        "options": {
+          "systemMessage": "==You write image prompts for the FLUX schnell model. The image goes on a LinkedIn post by a student learning cybersecurity and electronics. It must look like a real, relatable photo from a student's workspace, not stock art.\n\nVisual style to apply: {{ $('Config').first().json.imageStyle }}\n\nMethod: find the specific physical things the post is about (for example a router and ethernet cables, a breadboard with LEDs and a multimeter, a laptop showing a terminal window, a Raspberry Pi). Build one believable scene around them with a human touch: a mug of tea, a half-finished notebook sketch, hands typing or holding a probe, sticky notes, a slightly messy desk. The scene should tell a small story of someone mid-project, learning something.\n\nWrite ONE paragraph on a single line, 45-70 words, in plain descriptive language: main subject, supporting objects, setting, the given framing, camera and lens, lighting, colours, mood.\n\nRules: only things that can be photographed; no readable text, letters, numbers, signs or logos anywhere (screens show soft glow or blurred shapes only); no faces, hands only if people appear; avoid hooded hackers, padlocks, matrix code, neon robots, glossy 3D renders.\n\nReturn only the prompt."
+        }
+      },
+      "id": "31d3cc99-58d1-4a80-8024-9a439da44587",
+      "name": "Image Prompt Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1152,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.9
+        }
+      },
+      "id": "41a06939-3eae-4fd4-94df-a2200eecd470",
+      "name": "Gemini - Image Prompt",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        224
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BHaLAV2VuIk4jExL",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Post Writer Agent').first().json.output }}",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {}
+      },
+      "id": "5deb4c7b-38cc-4d3e-a552-de840cf05bfd",
+      "name": "Post to LinkedIn",
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        2704,
+        0
+      ],
+      "retryOnFail": false,
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').first().json.sheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Posts",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.format('yyyy-MM-dd HH:mm') }}",
+            "Topic": "={{ $('Duplicate Check').first().json.topic }}",
+            "Auidence": "={{ $('Duplicate Check').first().json.audience }}",
+            "Post ": "={{ $('Post Writer Agent').first().json.output }}",
+            "ImagePrompt": "={{ $('Image Prompt Agent').first().json.output }}",
+            "LinkedInPostId": "={{ $json.urn || $json.id || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Auidence",
+              "displayName": "Auidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Post ",
+              "displayName": "Post ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ImagePrompt",
+              "displayName": "ImagePrompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedInPostId",
+              "displayName": "LinkedInPostId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a3782782-0959-4c29-aadd-0f89e455156f",
+      "name": "Save to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_APPROVAL_EMAIL",
+        "subject": "=Image preview: {{ $('Duplicate Check').first().json.topic }}",
+        "emailType": "text",
+        "message": "=Image for today's LinkedIn post is attached.\n\nPost:\n\n{{ $('Post Writer Agent').first().json.output }}\n\nThe approval email comes next. Tap Post it there to publish.",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "30223c90-f2a2-4aa2-955d-58fb81a0b4db",
+      "name": "Email Preview1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1984,
+        0
+      ],
+      "webhookId": "a2e8503c-7547-422b-a9c3-fdb68b8837f9"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { approved: true }, binary: $('To Binary').first().binary }];"
+      },
+      "id": "1941035a-3d0c-4a07-b605-af4c599b705a",
+      "name": "Restore Image1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2528,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.cloudflare.com/client/v4/accounts/' + $('Config').first().json.cloudflareAccountId + '/ai/run/@cf/black-forest-labs/flux-1-schnell' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: String($json.output || '').trim().replace(/^[\"']+|[\"']+$/g, '').slice(0, 1800), steps: 6 }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "d9cff198-8b8f-40ae-ace1-5a1c1fe16111",
+      "name": "Cloudflare Image1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1632,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "6b95a237-0809-49e2-a31c-e026a0ca8b09",
+      "name": "Wait-1",
+      "webhookId": "10d4f62e-1d57-400e-bf25-baf79a8f6271"
+    },
+    {
+      "parameters": {
+        "amount": 40
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        0
+      ],
+      "id": "7f4150c2-5222-458b-a0c4-d9fc3e025f8d",
+      "name": "Wait-2",
+      "webhookId": "d106eb87-01a0-41e5-b9c5-62361e4bf8a2"
+    },
+    {
+      "parameters": {
+        "amount": 50
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1472,
+        0
+      ],
+      "id": "d8236394-8d6d-4c9f-a037-85b494428db9",
+      "name": "Wait-3",
+      "webhookId": "533861a8-868d-4538-8442-c4f9cbbcf961"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To Binary": {
+      "main": [
+        [
+          {
+            "node": "Email Preview1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Approval1": {
+      "main": [
+        [
+          {
+            "node": "Approved?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?1": {
+      "main": [
+        [
+          {
+            "node": "Restore Image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "Wait-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Writer Agent": {
+      "main": [
+        [
+          {
+            "node": "Wait-2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Writer": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Post Writer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Prompt Agent": {
+      "main": [
+        [
+          {
+            "node": "Wait-3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Image Prompt": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Prompt Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Preview1": {
+      "main": [
+        [
+          {
+            "node": "Email Approval1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Image1": {
+      "main": [
+        [
+          {
+            "node": "Post to LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cloudflare Image1": {
+      "main": [
+        [
+          {
+            "node": "To Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait-1": {
+      "main": [
+        [
+          {
+            "node": "Post Writer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait-2": {
+      "main": [
+        [
+          {
+            "node": "Image Prompt Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait-3": {
+      "main": [
+        [
+          {
+            "node": "Cloudflare Image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "93b95fe1-86ea-400b-8981-9e21bfe11820",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "467f763965df25468ddd339953754fc919b18af9faf0a7b2801cef80d1454f87"
+  },
+  "nodeGroups": [],
+  "id": "ykJnCQ5Xjthj35Ia",
+  "tags": []
+}
