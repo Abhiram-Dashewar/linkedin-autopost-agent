@@ -2,7 +2,7 @@
 
 An n8n workflow that turns a short **"What I learned today?"** note into a ready-to-publish LinkedIn post with an AI-generated image. You fill in a form, the workflow writes the post and image, emails you a preview, and publishes to LinkedIn only after you approve. **One important remainder that, we are using google gemini's free API. Sometimes this automation sends too many requests from our side. It is better to wait until each node executes perfectly.**
 
-## Workflow diagram
+## Image
 
 ![Banner Image](/PostImage.png)
 
