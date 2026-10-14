@@ -106,7 +106,7 @@ The Image Prompt Agent describes a realistic student-workspace photo (laptop ter
 
 ## 🚀 Setup
 
-[⬇️ Download n8n Automation. ](workflow.json)
+[⬇️ Download n8n Automation. ](FinalWorkflow.json)
 
 ### 1. Import the workflow
 In n8n: **Workflows → Import from File** and select `workflow.json`. 
